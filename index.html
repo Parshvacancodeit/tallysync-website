@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Home - TallySync{% endblock %}
+
+{% block content %}
+<h1>Welcome to TallySync</h1>
+<p style="color: #666; margin-bottom: 2rem;">Upload bank statements, manage transactions, and sync with Tally seamlessly.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem;">
+    <div style="padding: 2rem; background: #f8f9fa; border-radius: 1rem; border-left: 4px solid #667eea;">
+        <h3>📤 Step 1: Upload</h3>
+        <p style="color: #666; margin: 1rem 0;">Upload your bank statement JSON file</p>
+        <a href="{{ url_for('upload') }}" class="btn btn-primary">Go to Upload</a>
+    </div>
+
+    <div style="padding: 2rem; background: #f8f9fa; border-radius: 1rem; border-left: 4px solid #667eea;">
+        <h3>📋 Step 2: Manage</h3>
+        <p style="color: #666; margin: 1rem 0;">View and assign ledgers to transactions</p>
+        <button class="btn btn-secondary" disabled style="opacity: 0.5;">Upload first</button>
+    </div>
+
+    <div style="padding: 2rem; background: #f8f9fa; border-radius: 1rem; border-left: 4px solid #667eea;">
+        <h3>🚀 Step 3: Send</h3>
+        <p style="color: #666; margin: 1rem 0;">Generate XML and send to Tally connector</p>
+        <button class="btn btn-secondary" disabled style="opacity: 0.5;">Upload first</button>
+    </div>
+</div>
+
+<div style="margin-top: 3rem; padding: 1.5rem; background: {% if connector_configured %}#d4edda{% else %}#fff3cd{% endif %}; border-radius: 1rem;">
+    <h3>{% if connector_configured %}✅{% else %}⚠️{% endif %} Connector Status</h3>
+    <p style="margin: 1rem 0;">
+        {% if connector_configured %}
+            Connector is configured and ready to receive data.
+        {% else %}
+            Connector not configured. Please configure in settings to send data.
+        {% endif %}
+    </p>
+    <a href="{{ url_for('settings') }}" class="btn {% if connector_configured %}btn-secondary{% else %}btn-primary{% endif %}">
+        {% if connector_configured %}Update Settings{% else %}Configure Now{% endif %}
+    </a>
+</div>
+
+<div style="margin-top: 2rem; padding: 1.5rem; background: #e7f3ff; border-radius: 1rem; border-left: 4px solid #0066cc;">
+    <h3>💡 How It Works</h3>
+    <ol style="margin-left: 1.5rem; color: #666; line-height: 1.8;">
+        <li><strong>Upload</strong> your bank statement JSON file</li>
+        <li><strong>Review</strong> transactions and assign ledgers</li>
+        <li><strong>Generate</strong> Tally XML format</li>
+        <li><strong>Send</strong> to your local connector via Cloudflare Tunnel</li>
+        <li><strong>Import</strong> into Tally automatically (coming soon)</li>
+    </ol>
+</div>
+{% endblock %}

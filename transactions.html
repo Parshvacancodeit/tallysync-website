@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - TallySync{% endblock %}
+
+{% block content %}
+<h1>📋 Manage Transactions</h1>
+<p style="color: #666; margin-bottom: 2rem;">Review and assign ledgers to transactions</p>
+
+{% if summary %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div style="padding: 1.5rem; background: #f8f9fa; border-radius: 1rem; text-align: center;">
+        <div style="font-size: 0.875rem; color: #666; margin-bottom: 0.5rem;">Opening Balance</div>
+        <div style="font-size: 1.5rem; font-weight: 700;">{{ summary['Opening Balance'] }}</div>
+    </div>
+    <div style="padding: 1.5rem; background: #fff3cd; border-radius: 1rem; text-align: center;">
+        <div style="font-size: 0.875rem; color: #666; margin-bottom: 0.5rem;">Total Debits</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #dc3545;">{{ summary['Total Debits'] }}</div>
+    </div>
+    <div style="padding: 1.5rem; background: #d4edda; border-radius: 1rem; text-align: center;">
+        <div style="font-size: 0.875rem; color: #666; margin-bottom: 0.5rem;">Total Credits</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #28a745;">{{ summary['Total Credits'] }}</div>
+    </div>
+    <div style="padding: 1.5rem; background: #e7f3ff; border-radius: 1rem; text-align: center;">
+        <div style="font-size: 0.875rem; color: #666; margin-bottom: 0.5rem;">Closing Balance</div>
+        <div style="font-size: 1.5rem; font-weight: 700;">{{ summary['Closing Balance'] }}</div>
+    </div>
+</div>
+{% endif %}
+
+<div style="padding: 1rem; background: #e7f3ff; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+    <strong>ℹ️ Auto-Assignment:</strong> All transactions are automatically assigned to <strong>Suspense Account</strong>. You can change individual assignments if needed.
+</div>
+
+<div style="overflow-x: auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Transaction Details</th>
+                <th>Cheque No</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Balance</th>
+                <th style="width: 200px;">Assign Ledger</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trans in transactions %}
+            <tr>
+                <td>{{ trans.data.get('Trans Date and Time', '') }}</td>
+                <td>{{ trans.data.get('Transaction Details', '') }}</td>
+                <td>{{ trans.data.get('Cheque No', '') }}</td>
+                <td style="color: #dc3545;">{{ trans.data.get('Debit', '') }}</td>
+                <td style="color: #28a745;">{{ trans.data.get('Credit', '') }}</td>
+                <td>{{ trans.data.get('Balance', '') }}</td>
+                <td>
+                    <select onchange="updateLedger('{{ trans.id }}', this.value)" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                        {% for ledger in ledgers %}
+                        <option value="{{ ledger.id }}" {% if trans.ledger and trans.ledger.id == ledger.id %}selected{% endif %}>
+                            {{ ledger.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+    <a href="{{ url_for('upload') }}" class="btn btn-secondary">Back to Upload</a>
+    <a href="{{ url_for('generate_xml', statement_id=statement_id) }}" class="btn btn-primary">Generate XML →</a>
+</div>
+
+<script>
+function updateLedger(transactionId, ledgerId) {
+    fetch('/update-ledger', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            transaction_id: transactionId,
+            ledger_id: ledgerId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Ledger updated successfully');
+        } else {
+            alert('Error updating ledger: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+</script>
+{% endblock %}

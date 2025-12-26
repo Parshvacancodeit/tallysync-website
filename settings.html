@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - TallySync{% endblock %}
+
+{% block content %}
+<h1>⚙️ Connector Settings</h1>
+<p style="color: #666; margin-bottom: 2rem;">Configure your local Tally connector connection</p>
+
+<form method="POST" style="max-width: 600px;">
+    <div class="form-group">
+        <label for="connector_url">Connector URL</label>
+        <input type="url" 
+               id="connector_url" 
+               name="connector_url" 
+               value="{{ config.url }}"
+               placeholder="https://your-tunnel-url.trycloudflare.com"
+               required>
+        <small style="color: #666; display: block; margin-top: 0.5rem;">
+            Paste the Cloudflare Tunnel URL from your connector app
+        </small>
+    </div>
+
+    <div class="form-group">
+        <label for="auth_token">Auth Token</label>
+        <input type="password" 
+               id="auth_token" 
+               name="auth_token" 
+               value="{{ config.token }}"
+               placeholder="test_token_123"
+               required>
+        <small style="color: #666; display: block; margin-top: 0.5rem;">
+            The same token you entered in your connector app
+        </small>
+    </div>
+
+    <div style="display: flex; gap: 1rem;">
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+<div style="margin-top: 3rem; padding: 1.5rem; background: #f8f9fa; border-radius: 1rem;">
+    <h3>📝 How to Get These Values</h3>
+    <ol style="margin-left: 1.5rem; color: #666; line-height: 1.8; margin-top: 1rem;">
+        <li>Open your <strong>connector app</strong> (minimal_connector.py)</li>
+        <li>Once connected, you'll see the <strong>Tunnel URL</strong> in the app</li>
+        <li>Click "Copy" next to the URL and paste it above</li>
+        <li>Enter the same <strong>Auth Token</strong> you used in the connector</li>
+        <li>Click "Save Settings" and we'll test the connection</li>
+    </ol>
+</div>
+
+{% if config.url %}
+<div style="margin-top: 2rem; padding: 1.5rem; background: #e7f3ff; border-radius: 1rem;">
+    <h3>🔍 Current Configuration</h3>
+    <table style="margin-top: 1rem;">
+        <tr>
+            <td style="font-weight: 600;">Connector URL:</td>
+            <td><code>{{ config.url }}</code></td>
+        </tr>
+        <tr>
+            <td style="font-weight: 600;">Auth Token:</td>
+            <td><code>{{ config.token[:8] }}...{{ config.token[-4:] if config.token|length > 12 else config.token }}</code></td>
+        </tr>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

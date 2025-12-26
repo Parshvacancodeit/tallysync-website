@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Upload - TallySync{% endblock %}
+
+{% block content %}
+<h1>📤 Upload Bank Statement</h1>
+<p style="color: #666; margin-bottom: 2rem;">Upload your bank statement JSON file to get started</p>
+
+<form method="POST" enctype="multipart/form-data" style="max-width: 600px;">
+    <div style="border: 3px dashed #ddd; border-radius: 1rem; padding: 3rem; text-align: center; background: #f8f9fa; cursor: pointer; transition: all 0.3s;" 
+         onclick="document.getElementById('fileInput').click()"
+         onmouseover="this.style.borderColor='#667eea'"
+         onmouseout="this.style.borderColor='#ddd'">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+        <p style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">
+            Click to upload or drag and drop
+        </p>
+        <p style="color: #666;">JSON files only</p>
+        <input type="file" 
+               id="fileInput" 
+               name="file" 
+               accept=".json"
+               style="display: none;"
+               onchange="document.getElementById('fileName').textContent = this.files[0]?.name || 'No file chosen'; document.getElementById('uploadBtn').disabled = false;">
+    </div>
+
+    <p id="fileName" style="margin-top: 1rem; color: #666; text-align: center;">No file chosen</p>
+
+    <div style="margin-top: 2rem; text-align: center;">
+        <button type="submit" id="uploadBtn" class="btn btn-primary" disabled>Upload & Process</button>
+    </div>
+</form>
+
+{% if statements %}
+<div style="margin-top: 3rem;">
+    <h2>📋 Previously Uploaded Statements</h2>
+    <table style="margin-top: 1rem;">
+        <thead>
+            <tr>
+                <th>Statement ID</th>
+                <th>Uploaded At</th>
+                <th>Transactions</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stmt_id, stmt in statements.items() %}
+            <tr>
+                <td><code>{{ stmt_id }}</code></td>
+                <td>{{ stmt.uploaded_at[:19] }}</td>
+                <td>{{ stmt.transaction_ids|length if stmt.transaction_ids else 0 }} transactions</td>
+                <td>
+                    <a href="{{ url_for('transactions', statement_id=stmt_id) }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div style="margin-top: 3rem; padding: 1.5rem; background: #fff3cd; border-radius: 1rem;">
+    <h3>💡 Example JSON Format</h3>
+    <pre style="background: white; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.875rem;"><code>{
+  "page_1": {
+    "summary": {
+      "Opening Balance": "0.00",
+      "Total Debits": "27,870,000.00",
+      "Total Credits": "27,906,441.10",
+      "Closing Balance": "36,441.10Cr"
+    },
+    "transactions": [
+      {
+        "Trans Date and Time": "16/01/24 20:02",
+        "Value Date": "17/01/24",
+        "Transaction Details": "CHQ DEP/336545/V P MATADAR",
+        "Cheque No": "336545",
+        "Debit": "",
+        "Credit": "1,400,000.00",
+        "Balance": "1,400,000.00Cr"
+      }
+    ]
+  }
+}</code></pre>
+</div>
+{% endblock %}
