@@ -325,25 +325,18 @@ def send_to_connector(statement_id):
 @app.route('/upload-xml', methods=['GET', 'POST'])
 def upload_xml():
     if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file uploaded', 'error')
-            return redirect(url_for('upload_xml'))
+        file = request.files.get('file')
 
-        file = request.files['file']
-
-        if file.filename == '' or not file.filename.endswith('.xml'):
+        if not file or not file.filename.endswith('.xml'):
             flash('Please upload a valid XML file', 'error')
             return redirect(url_for('upload_xml'))
 
-        xml_data = file.read().decode('utf-8')
-
-        # Store temporarily in session (POC safe)
-        session['xml_data'] = xml_data
-
+        session['xml_data'] = file.read().decode('utf-8')
         flash('✅ XML uploaded successfully', 'success')
-        return redirect(url_for('preview_xml'))
+        return redirect(url_for('index'))
 
     return render_template('upload_xml.html')
+
 
 @app.route('/preview-xml')
 def preview_xml():
@@ -361,33 +354,32 @@ def preview_xml():
 
 @app.route('/sync-with-tally', methods=['POST'])
 def sync_with_tally():
-    if not CONNECTOR_CONFIG['url'] or not CONNECTOR_CONFIG['token']:
-        return jsonify({'success': False, 'message': 'Connector not configured'}), 400
-
     xml_data = session.get('xml_data')
+
     if not xml_data:
-        return jsonify({'success': False, 'message': 'No XML uploaded'}), 400
+        flash('❌ No XML uploaded', 'error')
+        return redirect(url_for('index'))
 
     try:
         response = requests.post(
             f"{CONNECTOR_CONFIG['url']}/api/receive-xml",
             headers={
-                'Authorization': f"Bearer {CONNECTOR_CONFIG['token']}",
-                'Content-Type': 'application/json'
+                "Authorization": f"Bearer {CONNECTOR_CONFIG['token']}",
+                "Content-Type": "application/json"
             },
-            json={'xml': xml_data},
+            json={"xml": xml_data},
             timeout=10
         )
 
-        return jsonify({
-            'success': True,
-            'tally_response': response.text
-        })
+        if response.status_code == 200:
+            flash('🚀 XML synced with Tally successfully!', 'success')
+        else:
+            flash(f'❌ Connector error: {response.status_code}', 'error')
 
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        flash(str(e), 'error')
 
-
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
