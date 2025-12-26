@@ -367,7 +367,41 @@ def sync_with_tally():
                 "Authorization": f"Bearer {CONNECTOR_CONFIG['token']}",
                 "Content-Type": "application/json"
             },
-            json={"xml": xml_data},
+            json={"xml": """
+    <ENVELOPE>
+	<HEADER>
+		<TALLYREQUEST>Import Data</TALLYREQUEST>
+	</HEADER>
+	<BODY>
+		<IMPORTDATA>
+			<REQUESTDESC>
+				<REPORTNAME>All Masters</REPORTNAME>
+			</REQUESTDESC>
+			<REQUESTDATA>
+				<TALLYMESSAGE
+					xmlns:UDF="TallyUDF">
+					<LEDGER NAME="CGST" ACTION="Create">
+						<NAME>CGST</NAME>
+						<PARENT>Duties &amp; Taxes</PARENT>
+						<!-- EXACT GST MODEL USED BY TALLY -->
+						<TAXCLASSIFICATIONNAME>&#4; Not Applicable</TAXCLASSIFICATIONNAME>
+						<TAXTYPE>GST</TAXTYPE>
+						<GSTDUTYHEAD>CGST</GSTDUTYHEAD>
+						<GSTAPPROPRIATETO>Goods and Services</GSTAPPROPRIATETO>
+						<ISGSTAPPLICABLE>Yes</ISGSTAPPLICABLE>
+						<!-- SAFE FLAGS -->
+						<ISBILLWISEON>No</ISBILLWISEON>
+						<ISCOSTCENTRESON>No</ISCOSTCENTRESON>
+						<AFFECTSSTOCK>No</AFFECTSSTOCK>
+						<ISDELETED>No</ISDELETED>
+					</LEDGER>
+				</TALLYMESSAGE>
+			</REQUESTDATA>
+		</IMPORTDATA>
+	</BODY>
+</ENVELOPE>
+
+    """},
             timeout=10
         )
 
