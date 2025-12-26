@@ -9,6 +9,21 @@
 
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem;">
 
+    <div style="margin-top: 3rem; padding: 1.5rem; background: {% if connector_configured %}#d4edda{% else %}#fff3cd{% endif %}; border-radius: 1rem;">
+    <h3>{% if connector_configured %}✅{% else %}⚠️{% endif %} Connector Status</h3>
+    <p style="margin: 1rem 0;">
+        {% if connector_configured %}
+            Connector is configured and ready to receive data.
+        {% else %}
+            Connector not configured. Please configure in settings to send data.
+        {% endif %}
+    </p>
+    <a href="{{ url_for('settings') }}" class="btn {% if connector_configured %}btn-secondary{% else %}btn-primary{% endif %}">
+        {% if connector_configured %}Update Settings{% else %}Configure Now{% endif %}
+    </a>
+</div>
+
+
     <!-- Upload XML -->
     <div style="padding:2rem;background:#f8f9fa;border-radius:1rem;border-left:4px solid #0d6efd;">
         <h3>📄 Upload XML</h3>
