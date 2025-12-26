@@ -1,89 +1,22 @@
 {% extends "base.html" %}
-
-{% block title %}Generate XML - TallySync{% endblock %}
-
 {% block content %}
-<h1>📄 Generated XML</h1>
-<p style="color: #666; margin-bottom: 2rem;">Review and send XML to your connector</p>
+<h2>📄 XML Preview</h2>
 
-<div style="padding: 1.5rem; background: #d4edda; border-radius: 1rem; margin-bottom: 2rem;">
-    <h3>✅ XML Generated Successfully</h3>
-    <p style="margin-top: 0.5rem; color: #155724;">
-        Your transactions have been converted to Tally XML format. Review below and send to connector.
-    </p>
-</div>
+<pre style="background:#111;color:#0f0;padding:1rem;height:300px;overflow:auto;">
+{{ xml_data }}
+</pre>
 
-<div style="margin-bottom: 2rem;">
-    <h3>XML Preview:</h3>
-    <div style="background: #2d3748; color: #e2e8f0; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; max-height: 500px; overflow-y: auto;">
-        <pre style="margin: 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.6;">{{ xml_data }}</pre>
-    </div>
-</div>
-
-<div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center;">
-    <div>
-        <a href="{{ url_for('transactions', statement_id=statement_id) }}" class="btn btn-secondary">← Back to Transactions</a>
-    </div>
-    <div style="display: flex; gap: 1rem;">
-        <button onclick="copyXML()" class="btn btn-secondary">📋 Copy XML</button>
-        {% if connector_configured %}
-        <button onclick="sendToConnector()" class="btn btn-primary" id="sendBtn">📤 Send to Connector</button>
-        {% else %}
-        <a href="{{ url_for('settings') }}" class="btn btn-primary">⚙️ Configure Connector First</a>
-        {% endif %}
-    </div>
-</div>
-
-<div id="statusMessage" style="margin-top: 2rem; padding: 1rem; border-radius: 0.5rem; display: none;"></div>
+{% if connector_configured %}
+<button id="syncBtn" class="btn btn-success">🚀 Sync with Tally</button>
+{% else %}
+<p style="color:red;">⚠️ Configure connector first</p>
+{% endif %}
 
 <script>
-function copyXML() {
-    const xmlText = `{{ xml_data }}`;
-    navigator.clipboard.writeText(xmlText).then(() => {
-        showStatus('✅ XML copied to clipboard!', 'success');
-    }).catch(err => {
-        showStatus('❌ Failed to copy XML', 'error');
-    });
-}
-
-function sendToConnector() {
-    const btn = document.getElementById('sendBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Sending...';
-    
-    fetch('/send-to-connector/{{ statement_id }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.textContent = '📤 Send to Connector';
-        
-        if (data.success) {
-            showStatus('✅ ' + data.message + ' (at ' + data.timestamp + ')', 'success');
-        } else {
-            showStatus('❌ Error: ' + data.message, 'error');
-        }
-    })
-    .catch(error => {
-        btn.disabled = false;
-        btn.textContent = '📤 Send to Connector';
-        showStatus('❌ Network error: ' + error, 'error');
-    });
-}
-
-function showStatus(message, type) {
-    const statusDiv = document.getElementById('statusMessage');
-    statusDiv.textContent = message;
-    statusDiv.className = 'alert-' + type;
-    statusDiv.style.display = 'block';
-    
-    setTimeout(() => {
-        statusDiv.style.display = 'none';
-    }, 5000);
-}
+document.getElementById('syncBtn')?.addEventListener('click', async () => {
+    const res = await fetch('/sync-with-tally', { method: 'POST' })
+    const data = await res.json()
+    alert(data.success ? "✅ Sent to Tally" : data.message)
+})
 </script>
 {% endblock %}

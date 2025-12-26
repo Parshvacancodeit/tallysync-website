@@ -484,10 +484,10 @@ app_instance = None
 
 @flask_app.route('/api/receive-xml', methods=['POST'])
 def receive_xml():
-    """Endpoint to receive XML from Render"""
+    """Endpoint to receive XML from Render and forward to Tally"""
     global AUTH_TOKEN, app_instance
     
-    # Check authorization
+    # Check authorization (Website → Connector only)
     auth_header = request.headers.get('Authorization')
     if not auth_header or auth_header != f'Bearer {AUTH_TOKEN}':
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
@@ -499,18 +499,38 @@ def receive_xml():
         if not xml_data:
             return jsonify({'success': False, 'message': 'No XML data provided'}), 400
         
-        # Display in Tkinter (run in main thread)
+        # Display XML in Tkinter UI
         if app_instance:
             app_instance.root.after(0, lambda: app_instance.display_xml(xml_data))
         
+        # 🚀 SEND XML TO TALLY (PORT 9000)
+        try:
+            tally_response = requests.post(
+                "http://localhost:9000",
+                data=xml_data.encode("utf-8"),
+                headers={
+                    "Content-Type": "application/xml"
+                },
+                timeout=10
+            )
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'message': f'Failed to connect to Tally: {str(e)}'
+            }), 500
+        
+        # Return Tally response to website
         return jsonify({
             'success': True,
-            'message': 'XML received successfully',
+            'message': 'XML forwarded to Tally',
+            'tally_status_code': tally_response.status_code,
+            'tally_response': tally_response.text,
             'timestamp': datetime.now().isoformat()
         })
         
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
 
 @flask_app.route('/api/status', methods=['GET'])
 def status():
